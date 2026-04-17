@@ -31,8 +31,7 @@
     "next-i18next": "^15.0.0",
     "@monaco-editor/react": "^4.6.0",
     "monaco-editor": "^0.44.0",
-    "lucide-react": "^0.292.0",
-    "psutil": "^5.9.0"
+    "lucide-react": "^0.292.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
