@@ -1,0 +1,107 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  NODE_ENV: production
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+        
+    - name: Install dependencies
+      run: |
+        cd frontend
+        npm ci --only=production
+        
+        cd ../backend
+        pip install -r requirements.txt
+        
+    - name: Run tests
+      run: |
+        cd frontend
+        npm run test:coverage
+        
+        cd ../backend
+        python -m pytest backend/tests/ -v --cov=backend --cov-report=xml
+        
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm run build
+        
+    - name: Build Docker images
+      run: |
+        docker build -t imikino-frontend:latest -f frontend/Dockerfile.prod ./frontend
+        docker build -t imikino-backend:latest -f backend/Dockerfile.prod ./backend
+        
+    - name: Deploy to production
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "🚀 Deploying to production..."
+        
+        # Deploy to your hosting provider
+        # Example for DigitalOcean App Platform
+        # Uncomment and configure your provider
+        # doctl apps create --spec .do/app.yaml --app imikino --wait
+        
+        # Example for Vercel
+        # npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }}
+        
+        # Example for Render
+        # curl -X POST https://api.render.com/v1/services \
+        #   -H "Authorization: Bearer ${{ secrets.RENDER_TOKEN }}" \
+        #   -H "Content-Type: application/json" \
+        #   -d '{"serviceId": "srv-xxxxx", "clearCache": true}'
+        
+    - name: Health check
+      if: github.ref == 'refs/heads/main'
+      run: |
+        echo "🏥 Running health checks..."
+        sleep 30
+        
+        # Check frontend
+        curl -f https://imikino.rw/health || exit 1
+        
+        # Check backend
+        curl -f https://api.imikino.rw/health || exit 1
+        
+        echo "✅ Health checks passed"
+        
+    - name: Notify deployment
+      if: github.ref == 'refs/heads/main'
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#deployments'
+        text: |
+          🚀 *Imikino Production Deployment*
+          
+          *Commit:* ${{ github.sha }}
+          *Branch:* ${{ github.ref_name }}
+          *Status:* ${{ job.status }}
+          
+          *Frontend:* https://imikino.rw
+          *API:* https://api.imikino.rw
+          *Admin:* https://imikino.rw/admin/code
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
