@@ -8,6 +8,7 @@ from auth import get_current_user, get_current_admin_user
 from routes import auth, users, posts, courses, tasks, admin, admin_auto_grant, ai_assistant
 from routes.contact import router as contact_router
 from routes.admin_chamber import router as admin_chamber_router
+from routes.pdf_builder import router as pdf_builder_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -45,6 +46,7 @@ app.include_router(admin_auto_grant.router, prefix="/admin", tags=["Admin Auto-G
 app.include_router(ai_assistant.router, prefix="/api", tags=["AI Assistant"])
 app.include_router(contact_router, prefix="/api", tags=["Contact"])
 app.include_router(admin_chamber_router, prefix="/api", tags=["Admin Chamber"])
+app.include_router(pdf_builder_router, prefix="/api", tags=["PDF Builder"])
 
 @app.get("/")
 async def root():
