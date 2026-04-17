@@ -1,6 +1,6 @@
 import React from 'react'
 import { Mail, Phone, MapPin, GraduationCap, Code, Heart } from 'lucide-react'
-import { useTranslation } from '@/components/ui/LanguageSelector'
+import { useTranslation } from 'next-i18next'
 
 export const Footer: React.FC = () => {
   const { t } = useTranslation()

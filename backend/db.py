@@ -4,6 +4,137 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 class Database:
+    def __init__(self):
+        self.conn = sqlite3.connect('imikino.db', check_same_thread=False)
+        self.conn.row_factory = sqlite3.Row
+        self.create_tables()
+        self.initialize_data()
+
+    def create_tables(self):
+        # Create users table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            display_name TEXT NOT NULL,
+            role TEXT DEFAULT 'user' NOT NULL,
+            xp INTEGER DEFAULT 0 NOT NULL,
+            level INTEGER DEFAULT 1 NOT NULL,
+            badges TEXT DEFAULT '[]',
+            last_login_at TEXT,
+            is_active BOOLEAN DEFAULT 1 NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            deleted_at TEXT
+        )''')
+
+        # Create posts table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            media_url TEXT,
+            type TEXT DEFAULT 'text',
+            likes_count INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )''')
+
+        # Create comments table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            post_id INTEGER NOT NULL,
+            user_id INTEGER NOT NULL,
+            content TEXT NOT NULL,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (post_id) REFERENCES posts (id),
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )''')
+
+        # Create courses table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS courses (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            thumbnail_url TEXT,
+            modules TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )''')
+
+        # Create quizzes table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS quizzes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            module_id TEXT NOT NULL,
+            questions TEXT,
+            correct_answers TEXT
+        )''')
+
+        # Create quiz_submissions table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS quiz_submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            quiz_id INTEGER NOT NULL,
+            answers TEXT,
+            score INTEGER,
+            submitted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (quiz_id) REFERENCES quizzes (id)
+        )''')
+
+        # Create tasks table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS tasks (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            description TEXT,
+            xp_reward INTEGER NOT NULL,
+            deadline TEXT,
+            proof_type TEXT DEFAULT 'text',
+            status TEXT DEFAULT 'open',
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )''')
+
+        # Create task_submissions table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS task_submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            task_id INTEGER NOT NULL,
+            proof TEXT,
+            status TEXT DEFAULT 'pending',
+            submitted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            reviewed_at TEXT,
+            reviewer_id INTEGER,
+            FOREIGN KEY (user_id) REFERENCES users (id),
+            FOREIGN KEY (task_id) REFERENCES tasks (id),
+            FOREIGN KEY (reviewer_id) REFERENCES users (id)
+        )''')
+
+        # Create audit_log table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS audit_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            action TEXT NOT NULL,
+            details TEXT,
+            ip_address TEXT,
+            user_agent TEXT,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users (id)
+        )''')
+
+        # Create contact_submissions table
+        self.conn.execute('''CREATE TABLE IF NOT EXISTS contact_submissions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL,
+            subject TEXT NOT NULL,
+            message TEXT NOT NULL,
+            status TEXT DEFAULT 'pending',
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP
+        )''')
+
+        self.conn.commit()
+
+    def initialize_data(self):
+        cursor = self.conn.cursor()
         cursor.execute("SELECT * FROM users WHERE role = 'admin'")
         if not cursor.fetchone():
             # Create admin user
@@ -128,8 +259,10 @@ class Database:
                     task["proof_type"]
                 ))
         
-        conn.commit()
-        conn.close()
+        self.conn.commit()
+
+    def get_connection(self):
+        return self.conn
 
 # Global database instance
 db = Database()

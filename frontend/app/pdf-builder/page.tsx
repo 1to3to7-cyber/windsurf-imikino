@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState, useCallback } from 'react'
 import { Button } from '@/components/ui/Button'
@@ -27,6 +27,29 @@ interface PDFHistory {
   file_size: string
 }
 
+const templates: PDFTemplate[] = [
+  {
+    name: 'professional',
+    description: 'Clean, professional layout with headers',
+    preview: '/templates/professional.png'
+  },
+  {
+    name: 'academic',
+    description: 'Academic format with citations',
+    preview: '/templates/academic.png'
+  },
+  {
+    name: 'creative',
+    description: 'Creative layout with visual elements',
+    preview: '/templates/creative.png'
+  },
+  {
+    name: 'minimal',
+    description: 'Clean, minimal layout',
+    preview: '/templates/minimal.png'
+  }
+]
+
 export default function PDFBuilder() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -37,32 +60,8 @@ export default function PDFBuilder() {
   const [targetPlatform, setTargetPlatform] = useState('lovable')
   const [customPrompt, setCustomPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
-  const [templates, setTemplates] = useState<PDFTemplate[]>([])
   const [history, setHistory] = useState<PDFHistory[]>([])
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
-
-  const templates: PDFTemplate[] = [
-    {
-      name: 'professional',
-      description: 'Clean, professional layout with headers',
-      preview: '/templates/professional.png'
-    },
-    {
-      name: 'academic',
-      description: 'Academic format with citations',
-      preview: '/templates/academic.png'
-    },
-    {
-      name: 'creative',
-      description: 'Creative layout with visual elements',
-      preview: '/templates/creative.png'
-    },
-    {
-      name: 'minimal',
-      description: 'Clean, minimal layout',
-      preview: '/templates/minimal.png'
-    }
-  ]
 
   const addSection = useCallback(() => {
     const newSection: PDFSection = {

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/Button'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { useTranslation } from '@/components/ui/LanguageSelector'
+import { useTranslation } from 'next-i18next'
 import { 
   FileText, 
   Folder, 

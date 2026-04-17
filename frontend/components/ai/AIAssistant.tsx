@@ -3,7 +3,7 @@ import { Send, Bot, User, BookOpen, Target, MessageSquare, Sparkles, Globe, Copy
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
-import { useTranslation } from '@/components/ui/LanguageSelector'
+import { useTranslation } from 'next-i18next'
 
 interface Message {
   id: string
